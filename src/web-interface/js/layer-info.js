@@ -2,18 +2,33 @@
  * Функции для работы с информацией о слоях ГИС-платформы
  */
 
+// Конфигурация GeoServer
+const geoserverUrl = '/geoserver';
+const rasterInstance = 'ecw';    // Инстанция для растровых данных
+
 // Получение экстента слоя из GeoServer через GetCapabilities
 function getLayerExtent(workspace, layerName, callback) {
-    const capabilitiesUrl = `/geoserver/${workspace}/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`;
+    const capabilitiesUrl = `${geoserverUrl}/${rasterInstance}/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`;
     
     fetch(capabilitiesUrl)
-        .then(response => response.text())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
         .then(text => {
             const parser = new ol.format.WMSCapabilities();
             const capabilities = parser.read(text);
             
             // Получаем информацию о слоях
             const layers = capabilities.Capability.Layer.Layer;
+            
+            if (!layers) {
+                console.warn('Не найдены слои в ответе GetCapabilities');
+                callback(null);
+                return;
+            }
             
             // Ищем наш слой
             const targetLayer = layers.find(layer => layer.Name === `${workspace}:${layerName}`);
@@ -52,16 +67,26 @@ function getLayerExtent(workspace, layerName, callback) {
 
 // Получение и отображение информации о слое (метаданные)
 function displayLayerMetadata(workspace, layerName) {
-    const url = `/geoserver/${workspace}/wms?service=WMS&version=1.3.0&request=GetCapabilities`;
+    const url = `${geoserverUrl}/${rasterInstance}/wms?service=WMS&version=1.3.0&request=GetCapabilities`;
     
     fetch(url)
-        .then(response => response.text())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+        })
         .then(text => {
             const parser = new ol.format.WMSCapabilities();
             const capabilities = parser.read(text);
             
             // Получаем информацию о слоях
             const layers = capabilities.Capability.Layer.Layer;
+            
+            if (!layers) {
+                console.warn('Не найдены слои в ответе GetCapabilities');
+                return;
+            }
             
             // Ищем наш слой
             const targetLayer = layers.find(layer => layer.Name === `${workspace}:${layerName}`);
@@ -87,21 +112,31 @@ function displayLayerMetadata(workspace, layerName) {
                     html += `Север: ${bbox.northBoundLatitude.toFixed(6)}</p>`;
                 }
                 
-                // Можно создать модальное окно или панель для отображения этой информации
-                // Например:
+                // Показываем информацию в панели
                 const infoPanel = document.getElementById('layer-info-panel');
                 if (infoPanel) {
                     infoPanel.innerHTML = html;
                     infoPanel.style.display = 'block';
+                    
+                    // Добавляем кнопку закрытия
+                    const closeButton = document.createElement('button');
+                    closeButton.textContent = '✕';
+                    closeButton.className = 'close-btn';
+                    closeButton.addEventListener('click', function() {
+                        infoPanel.style.display = 'none';
+                    });
+                    infoPanel.prepend(closeButton);
                 } else {
                     console.log('Метаданные слоя:', html);
                 }
             } else {
                 console.warn(`Слой ${workspace}:${layerName} не найден`);
+                alert(`Слой ${workspace}:${layerName} не найден в GeoServer. Проверьте, что слой опубликован.`);
             }
         })
         .catch(error => {
             console.error('Ошибка при получении метаданных слоя:', error);
+            alert('Ошибка при получении метаданных слоя. Проверьте соединение с GeoServer.');
         });
 }
 

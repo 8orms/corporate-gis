@@ -70,6 +70,9 @@ body {
     box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
     transition: width 0.3s;
+    max-height: 80vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
 }
 
 .layer-panel h2 {
@@ -416,4 +419,183 @@ body.dark-theme .footer {
     background-color: #161f27;
     color: #aaa;
     border-top-color: #3d4548;
+}
+
+/* Добавляем стиль для отображения сообщения об ошибке на карте */
+.map-error {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    max-width: 80%;
+    text-align: center;
+    color: #d32f2f;
+    font-weight: bold;
+    z-index: 1000;
+}
+
+body.dark-theme .map-error {
+    background-color: rgba(50, 50, 50, 0.9);
+    color: #ff6b6b;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #333;
+    padding: 5px;
+    line-height: 1;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+    background-color: rgba(0,0,0,0.1);
+}
+
+body.dark-theme .close-btn {
+    color: #ccc;
+}
+
+body.dark-theme .close-btn:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+/* Стили для предупреждения о недоступности слоя */
+.layer-warning {
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1001;
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    border-radius: 6px;
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    max-width: 90%;
+    width: 500px;
+}
+
+.warning-icon {
+    font-size: 24px;
+    margin-right: 10px;
+}
+
+.warning-text {
+    flex: 1;
+    font-size: 14px;
+}
+
+.warning-close {
+    background: transparent;
+    border: none;
+    color: #856404;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+/* Стили для недоступного слоя в панели слоев */
+.layer-unavailable {
+    opacity: 0.7;
+}
+
+.layer-unavailable .layer-name {
+    text-decoration: line-through;
+    color: #999;
+}
+
+.layer-unavailable-icon {
+    margin-left: 8px;
+    font-size: 14px;
+    color: #856404;
+}
+
+/* Стили для dark theme */
+body.dark-theme .layer-warning {
+    background-color: #343a40;
+    color: #ffc107;
+    border-color: #454d55;
+}
+
+body.dark-theme .warning-close {
+    color: #ffc107;
+}
+
+body.dark-theme .layer-unavailable .layer-name {
+    color: #6c757d;
+}
+
+.layer-group {
+    margin-bottom: 15px;
+}
+
+.layer-group h3 {
+    font-size: 14px;
+    margin: 0 0 10px 0;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #eee;
+    color: #555;
+}
+
+.layer-radio {
+    margin-right: 8px;
+}
+
+.layer-radio + .layer-name {
+    display: inline-block;
+    cursor: pointer;
+}
+
+body.dark-theme .layer-group h3 {
+    color: #aaa;
+    border-bottom-color: #444;
+}
+
+/* Улучшения для панели слоев */
+.layer-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.layer-panel::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.layer-panel::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.layer-panel::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+body.dark-theme .layer-panel::-webkit-scrollbar-track {
+    background: #2c3338;
+}
+
+body.dark-theme .layer-panel::-webkit-scrollbar-thumb {
+    background: #444;
+}
+
+body.dark-theme .layer-panel::-webkit-scrollbar-thumb:hover {
+    background: #666;
 } 
