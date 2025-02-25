@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор GeoServer</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            color: #3a7bdb;
+        }
+        .card-container {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .card {
+            width: 300px;
+            padding: 30px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        .card h2 {
+            color: #3a7bdb;
+            margin-top: 0;
+        }
+        .card p {
+            margin-bottom: 25px;
+            color: #666;
+            line-height: 1.5;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #3a7bdb;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2a5baa;
+        }
+        .back-link {
+            margin-top: 40px;
+            color: #3a7bdb;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Выбор инстанции GeoServer</h1>
+        
+        <div class="card-container">
+            <div class="card">
+                <h2>GeoServer Vector</h2>
+                <p>Инстанция для работы с векторными данными. Содержит слои с объектами, линиями, полигонами и другими векторными данными.</p>
+                <a href="/geoserver/vector/web/" class="btn">Открыть GeoServer Vector</a>
+            </div>
+            
+            <div class="card">
+                <h2>GeoServer ECW</h2>
+                <p>Инстанция для работы с растровыми данными. Поддерживает ECW файлы и другие форматы геопространственных растровых данных.</p>
+                <a href="/geoserver/ecw/web/" class="btn">Открыть GeoServer ECW</a>
+            </div>
+        </div>
+        
+        <a href="/" class="back-link">← Вернуться на главную</a>
+    </div>
+</body>
+</html> 

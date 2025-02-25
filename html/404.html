@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Страница не найдена</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 10rem;
+            margin: 0;
+            color: #3a7bdb;
+        }
+        h2 {
+            font-size: 2rem;
+            margin: 10px 0 30px;
+        }
+        p {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #3a7bdb;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2a5baa;
+        }
+        .links {
+            margin-top: 40px;
+        }
+        .links a {
+            margin: 0 10px;
+            color: #3a7bdb;
+            text-decoration: none;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>404</h1>
+        <h2>Страница не найдена</h2>
+        <p>Извините, запрашиваемая вами страница не существует или была перемещена.</p>
+        
+        <a href="/" class="btn">Вернуться на главную</a>
+        
+        <div class="links">
+            <a href="/geoserver/">Перейти к выбору GeoServer</a>
+            <a href="/geoserver/vector/web/">GeoServer Vector</a>
+            <a href="/geoserver/ecw/web/">GeoServer ECW</a>
+        </div>
+    </div>
+</body>
+</html> 

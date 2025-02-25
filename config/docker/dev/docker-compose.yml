@@ -28,7 +28,7 @@ services:
       - GEOSERVER_DATA_DIR=/opt/geoserver/data_dir
       - GEOSERVER_ADMIN_USER=admin
       - GEOSERVER_ADMIN_PASSWORD=geoserver
-      - CATALINA_OPTS=-Dorg.geoserver.web.proxy.base=http://localhost/geoserver/vector/web -Dorg.geoserver.use.header.proxy=true -DGEOSERVER_CSRF_DISABLED=true
+      - CATALINA_OPTS=-Dorg.geoserver.web.proxy.base=http://localhost/geoserver/vector -Dorg.geoserver.use.header.proxy=true -DGEOSERVER_CSRF_DISABLED=true
       - "INITIAL_MEMORY=1G"
       - "MAXIMUM_MEMORY=2G"
     ports:
