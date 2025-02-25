@@ -1,0 +1,90 @@
+﻿# Настройка upstream для GeoServer Vector
+upstream geoserver-vector {
+    server geoserver-vector:8080;
+}
+
+# Настройка upstream для GeoServer ECW
+upstream geoserver-ecw {
+    server geoserver-ecw:8080;
+}
+
+# Настройка сервера по умолчанию
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Кодировка по умолчанию
+    charset utf-8;
+
+    # Обработка запросов к статическим файлам
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Обработка запросов к GeoServer Vector
+    location /geoserver/vector/ {
+        proxy_pass http://geoserver-vector/geoserver/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 90;
+        proxy_redirect off;
+    }
+
+    # Обработка запросов к GeoServer ECW
+    location /geoserver/ecw/ {
+        proxy_pass http://geoserver-ecw/geoserver/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 90;
+        proxy_redirect off;
+    }
+
+    # Перенаправление запросов к старому пути /geoserver/
+    location = /geoserver/ {
+        return 302 /geoserver/vector/;
+    }
+
+    # Кэширование запросов WMS
+    location ~ ^/geoserver/.*/wms {
+        proxy_pass http://geoserver-vector$request_uri;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Настройки кэширования
+        proxy_cache_key $request_uri;
+        add_header X-Cache-Status $upstream_cache_status;
+        
+        # Настройки буферизации
+        proxy_buffers 16 4k;
+        proxy_buffer_size 2k;
+        proxy_max_temp_file_size 1024m;
+        proxy_busy_buffers_size 8k;
+    }
+
+    # Проверка здоровья сервера
+    location /health {
+        access_log off;
+        return 200 "OK";
+    }
+
+    # Обработка статических файлов
+    location ~* \.(jpg|jpeg|png|gif|ico|css|js|svg)$ {
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    # Обработка ошибок
+    error_page 404 /404.html;
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+        root /usr/share/nginx/html;
+    }
+}

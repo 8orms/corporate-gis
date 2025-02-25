@@ -1,0 +1,5 @@
+﻿# Корневой docker-compose.yml, который подключает конфигурацию для разработки
+version: '3.8'
+
+include:
+  - ./config/docker/dev/docker-compose.yml

@@ -1,0 +1,102 @@
+{
+  "model": "claude-3.7-sonnet-20250219",
+  "formatCode": true,
+  "autocomplete": true,
+  "logPrompts": false,
+  "temperature": 0.2,
+  "autocompleteLanguages": [
+    "*"
+  ],
+  "logFile": ".cursor/logs.json",
+  "excludeDirs": [
+    "data",
+    "node_modules",
+    "venv",
+    ".git",
+    "dist",
+    "build"
+  ],
+  "extraInferenceParams": {
+    "max_tokens_to_sample": 2048
+  },
+  "customCommands": [
+    {
+      "name": "explainCode",
+      "description": "Explain the selected code in detail",
+      "prompt": "Please explain the following code in detail, including its purpose, functionality, and any important concepts or patterns used:\n\n{selection}"
+    },
+    {
+      "name": "documentCode",
+      "description": "Generate documentation for the selected code",
+      "prompt": "Please generate comprehensive documentation for the following code. Include function descriptions, parameters, return values, and usage examples where appropriate:\n\n{selection}"
+    },
+    {
+      "name": "optimizeCode",
+      "description": "Suggest optimizations for the selected code",
+      "prompt": "Analyze the following code and suggest optimizations for performance, readability, and best practices:\n\n{selection}"
+    },
+    {
+      "name": "refactorCode",
+      "description": "Suggest refactoring ideas for the selected code",
+      "prompt": "Please refactor the following code to improve its structure, readability, and maintainability while preserving its functionality:\n\n{selection}"
+    },
+    {
+      "name": "generateDockerfile",
+      "description": "Generate a Dockerfile for the GeoServer project",
+      "prompt": "Please generate a Dockerfile for a GeoServer service that includes PostGIS support. The Dockerfile should be well-commented, follow best practices, and include appropriate environment variables and health checks."
+    },
+    {
+      "name": "gisHelp",
+      "description": "Get help with GeoServer and PostGIS concepts",
+      "prompt": "I'm working on a GeoServer and PostGIS based project. I need help understanding the following concept or solving this problem:\n\n{selection}"
+    },
+    {
+      "name": "generatePowerShellScript",
+      "description": "Generate a PowerShell script for GIS-related task",
+      "prompt": "Please generate a well-structured PowerShell script for the following GIS-related task. The script should include proper error handling, logging, and follow PowerShell best practices:\n\n{selection}"
+    },
+    {
+      "name": "explainGeoServerConfig",
+      "description": "Explain GeoServer configuration options",
+      "prompt": "Please explain the following GeoServer configuration options in detail, including their purpose, possible values, and best practices for configuration:\n\n{selection}"
+    },
+    {
+      "name": "generateNginxConfig",
+      "description": "Generate NGINX configuration for GeoServer",
+      "prompt": "Please generate an NGINX configuration for proxying GeoServer services. The configuration should include proper caching, compression, and security best practices:\n\n{selection}"
+    }
+  ],
+  "project": {
+    "name": "Corporate GIS Platform",
+    "description": "A GeoServer-based platform for corporate geospatial data management and visualization",
+    "specifications": [
+      "Built on GeoServer with PostGIS database",
+      "Includes web interface for data visualization",
+      "Provides API for geospatial data access",
+      "Supports various vector and raster formats including ECW",
+      "Uses dual GeoServer instances for vector and raster optimization",
+      "PowerShell scripts for platform management"
+    ],
+    "domains": [
+      "GIS",
+      "Geospatial",
+      "Web Mapping",
+      "Data Visualization",
+      "DevOps"
+    ],
+    "styles": [
+      "PowerShell",
+      "Docker",
+      "JavaScript",
+      "CSS",
+      "HTML"
+    ],
+    "management": {
+      "initializationCommand": "./manage-gis.ps1 init dev",
+      "startCommand": "./manage-gis.ps1 start",
+      "checkStatusCommand": "./manage-gis.ps1 status",
+      "stopCommand": "./manage-gis.ps1 stop",
+      "backupCommand": "./manage-gis.ps1 backup"
+    }
+  }
+} 

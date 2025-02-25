@@ -1,0 +1,63 @@
+﻿# Игнорировать директории с данными
+/data/postgis/
+/data/geoserver/*/data_dir/
+/data/raster-storage/
+/data/vector-storage/
+/data/user-projections/*
+!/data/user-projections/epsg.properties
+
+# Игнорировать логи
+*.log
+logs/
+
+# Игнорировать файлы среды
+.env
+.env.*
+!.env.example
+
+# Игнорировать временные файлы
+*.tmp
+*.temp
+*.swp
+*~
+
+# Игнорировать файлы IDE
+.idea/
+.vscode/
+*.iml
+.vs/
+
+# Игнорировать файлы Windows
+Thumbs.db
+desktop.ini
+
+# Игнорировать файлы macOS
+.DS_Store
+
+# Игнорировать кэш Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Игнорировать пакеты Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
