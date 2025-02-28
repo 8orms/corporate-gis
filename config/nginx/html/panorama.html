@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Просмотр панорам - Корпоративная ГИС</title>
+    
+    <!-- Стили OpenLayers -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.4.0/ol.css" type="text/css">
+    
+    <!-- Стили Pannellum -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" type="text/css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .header-nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: bold;
+        }
+        
+        .header-nav a:hover {
+            text-decoration: underline;
+        }
+        
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .map-controls button {
+            padding: 8px 12px;
+            border: none;
+            background-color: white;
+            color: #3498db;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .map-controls button:hover {
+            background-color: #f8f9fa;
+        }
+        
+        #panorama-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1001;
+            display: none;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        
+        #panorama {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .panorama-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1002;
+            padding: 8px 16px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1003;
+            display: none;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Корпоративная ГИС - Просмотр панорам</h1>
+        <div class="header-nav">
+            <a href="index.html">Главная</a>
+            <a href="map.html">Карта</a>
+            <a href="map-ol7.html">OpenLayers 7</a>
+            <a href="panorama.html" class="active">Панорамы</a>
+        </div>
+    </div>
+    
+    <div class="content">
+        <div id="map"></div>
+        
+        <div class="map-controls">
+            <button id="add-panorama">Добавить панораму</button>
+            <button id="reset-panoramas">Сбросить</button>
+        </div>
+        
+        <div id="panorama-container">
+            <div id="panorama"></div>
+            <button class="panorama-close">Закрыть</button>
+        </div>
+        
+        <div class="loading-indicator" id="loading"></div>
+    </div>
+    
+    <!-- OpenLayers -->
+    <script src="https://cdn.jsdelivr.net/npm/ol@v7.4.0/dist/ol.js"></script>
+    
+    <!-- Pannellum -->
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    
+    <!-- Наши модули -->
+    <script src="js/loading-spinner.js"></script>
+    <script src="js/panorama-viewer.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализация карты OpenLayers
+            const map = new ol.Map({
+                target: 'map',
+                layers: [
+                    new ol.layer.Tile({
+                        source: new ol.source.OSM()
+                    })
+                ],
+                view: new ol.View({
+                    center: ol.proj.fromLonLat([37.618423, 55.751244]), // Москва
+                    zoom: 10
+                }),
+                controls: ol.control.defaults()
+            });
+            
+            // Получаем элемент индикатора загрузки
+            const loadingIndicator = document.getElementById('loading');
+            
+            // Создаем спиннер загрузки с помощью нашего модуля
+            showLoadingIndicator(loadingIndicator, 'Инициализация...', {
+                clearTarget: true,
+                color: '#3498db',
+                size: 48,
+                textColor: '#3498db'
+            });
+            
+            // Через секунду скрываем индикатор
+            setTimeout(() => {
+                loadingIndicator.style.display = 'none';
+            }, 1000);
+            
+            // Создаем просмотрщик панорам
+            const panoramaViewer = new PanoramaViewer({
+                containerId: 'panorama-container',
+                viewerId: 'panorama',
+                closeButtonSelector: '.panorama-close',
+                onClose: function() {
+                    console.log('Панорама закрыта');
+                },
+                onLoad: function() {
+                    loadingIndicator.style.display = 'none';
+                    console.log('Панорама загружена');
+                },
+                onError: function(error) {
+                    loadingIndicator.style.display = 'none';
+                    console.error('Ошибка загрузки панорамы:', error);
+                    alert('Ошибка загрузки панорамы: ' + error.message);
+                }
+            });
+            
+            // Создаем менеджер панорам
+            const panoramaManager = new PanoramaManager({
+                map: map,
+                viewer: panoramaViewer,
+                onMarkerClick: function(panoramaData) {
+                    // Показываем индикатор загрузки при клике на маркер
+                    loadingIndicator.style.display = 'block';
+                    showLoadingIndicator(loadingIndicator, 'Загрузка панорамы...', {
+                        clearTarget: true,
+                        color: '#3498db',
+                        size: 48,
+                        textColor: '#3498db'
+                    });
+                    console.log('Клик по маркеру панорамы:', panoramaData);
+                },
+                onMarkerAdd: function(panorama, marker) {
+                    console.log('Добавлен маркер панорамы:', panorama);
+                    
+                    // Анимация к маркеру
+                    map.getView().animate({
+                        center: marker.getGeometry().getCoordinates(),
+                        zoom: 18,
+                        duration: 1000
+                    });
+                }
+            });
+            
+            // Добавляем обработчик для кнопки добавления панорамы
+            document.getElementById('add-panorama').addEventListener('click', function() {
+                // Получаем центр текущего вида карты
+                const center = ol.proj.toLonLat(map.getView().getCenter());
+                
+                // Запрашиваем URL изображения
+                const url = prompt('Введите URL панорамного изображения:', 'https://pannellum.org/images/cerro-toco-0.jpg');
+                
+                if (!url) return;
+                
+                // Создаем панораму и добавляем ее
+                const panorama = {
+                    id: 'pano_' + Date.now(),
+                    name: 'Панорама ' + new Date().toLocaleTimeString(),
+                    coordinates: center,
+                    url: url,
+                    type: 'equirectangular',
+                    heading: 0,
+                    author: 'Пользователь'
+                };
+                
+                panoramaManager.addPanorama(panorama);
+            });
+            
+            // Обработчик для кнопки сброса
+            document.getElementById('reset-panoramas').addEventListener('click', function() {
+                panoramaManager.clearPanoramas();
+                
+                // Закрываем просмотрщик, если он открыт
+                panoramaViewer.close();
+            });
+            
+            // Добавляем пример панорамы
+            panoramaManager.addPanorama({
+                id: 'pano_example',
+                name: 'Пример панорамы',
+                coordinates: [37.618423, 55.751244], // Москва
+                url: 'images/test-panorama.jpg',
+                type: 'equirectangular',
+                heading: 0,
+                author: 'Корпоративная ГИС'
+            });
+            
+            // Функция для добавления панорамы по клику на карту
+            map.on('click', function(e) {
+                // Проверяем, что не кликнули по маркеру
+                const feature = map.forEachFeatureAtPixel(e.pixel, feature => feature);
+                
+                if (!feature) {
+                    const coordinates = ol.proj.toLonLat(e.coordinate);
+                    
+                    // Используем локальное тестовое изображение
+                    const url = 'images/test-panorama.jpg';
+                    
+                    const panorama = {
+                        id: 'pano_click_' + Date.now(),
+                        name: 'Панорама [' + coordinates[0].toFixed(5) + ', ' + coordinates[1].toFixed(5) + ']',
+                        coordinates: coordinates,
+                        url: url,
+                        type: 'equirectangular',
+                        heading: 0,
+                        author: 'User Click'
+                    };
+                    
+                    panoramaManager.addPanorama(panorama);
+                }
+            });
+            
+            // Функция для загрузки панорам из API (пример)
+            function loadPanoramasFromAPI() {
+                // Показываем индикатор загрузки
+                loadingIndicator.style.display = 'block';
+                showLoadingIndicator(loadingIndicator, 'Загрузка панорам из API...', {
+                    clearTarget: true,
+                    color: '#3498db',
+                    size: 48,
+                    textColor: '#3498db'
+                });
+                
+                // В реальном приложении здесь будет запрос к API
+                const mockAPIResponse = [
+                    {
+                        id: 'server_pano_1',
+                        name: 'Панорама с сервера 1',
+                        coordinates: [37.623429, 55.753033],
+                        url: 'https://pannellum.org/images/alma.jpg',
+                        type: 'equirectangular',
+                        heading: 15,
+                        author: 'API User'
+                    },
+                    {
+                        id: 'server_pano_2',
+                        name: 'Панорама с сервера 2',
+                        coordinates: [37.613905, 55.752257],
+                        url: 'https://pannellum.org/images/bma-1.jpg',
+                        type: 'equirectangular',
+                        heading: 30,
+                        author: 'API User'
+                    }
+                ];
+                
+                // Добавляем панорамы на карту
+                panoramaManager.addPanoramas(mockAPIResponse);
+                
+                // Скрываем индикатор загрузки
+                setTimeout(() => {
+                    loadingIndicator.style.display = 'none';
+                }, 500);
+                
+                console.log('Загружены панорамы из API:', mockAPIResponse.length);
+            }
+            
+            // Симуляция загрузки панорам с сервера через 2 секунды
+            setTimeout(loadPanoramasFromAPI, 2000);
+            
+            console.log('Интерфейс просмотра панорам инициализирован');
+        });
+    </script>
+</body>
+</html> 
