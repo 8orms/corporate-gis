@@ -5,10 +5,13 @@
 // Конфигурация GeoServer
 const geoserverUrl = '/geoserver';
 const rasterInstance = 'ecw';    // Инстанция для растровых данных
+const workspace = 'TEST';      // Рабочее пространство для растровых данных
+const layerName = '2020-2021';     // Имя слоя растровых данных
 
 // Получение экстента слоя из GeoServer через GetCapabilities
 function getLayerExtent(workspace, layerName, callback) {
     const capabilitiesUrl = `${geoserverUrl}/${rasterInstance}/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`;
+    console.log(`Запрашиваем информацию о слое ${workspace}:${layerName} из: ${capabilitiesUrl}`);
     
     fetch(capabilitiesUrl)
         .then(response => {
@@ -21,46 +24,87 @@ function getLayerExtent(workspace, layerName, callback) {
             const parser = new ol.format.WMSCapabilities();
             const capabilities = parser.read(text);
             
-            // Получаем информацию о слоях
-            const layers = capabilities.Capability.Layer.Layer;
+            console.log('Получены данные о возможностях WMS:', capabilities);
             
-            if (!layers) {
-                console.warn('Не найдены слои в ответе GetCapabilities');
+            // Получаем информацию о слоях
+            let layers = [];
+            
+            if (capabilities.Capability && capabilities.Capability.Layer) {
+                // Проверяем, есть ли слои в виде массива или они вложены глубже
+                if (Array.isArray(capabilities.Capability.Layer.Layer)) {
+                    layers = capabilities.Capability.Layer.Layer;
+                } else if (capabilities.Capability.Layer.Layer) {
+                    // Если это один слой, создаем массив из него
+                    layers = [capabilities.Capability.Layer.Layer];
+                }
+            }
+            
+            if (layers.length === 0) {
+                console.warn('Не найдены слои в ответе GetCapabilities:', capabilities);
                 callback(null);
                 return;
             }
             
-            // Ищем наш слой
-            const targetLayer = layers.find(layer => layer.Name === `${workspace}:${layerName}`);
+            console.log(`Найдено ${layers.length} слоев в ответе GetCapabilities`);
             
-            if (targetLayer && targetLayer.EX_GeographicBoundingBox) {
-                // Получаем границы слоя
-                const bbox = targetLayer.EX_GeographicBoundingBox;
+            // Ищем наш слой
+            const targetLayerName = `${workspace}:${layerName}`;
+            const targetLayer = layers.find(layer => layer.Name === targetLayerName || layer.name === targetLayerName || layer.n === targetLayerName);
+            
+            if (targetLayer) {
+                console.log('Найден слой:', targetLayer);
                 
-                // Преобразуем в формат [minX, minY, maxX, maxY]
-                const extent = [
-                    bbox.westBoundLongitude,
-                    bbox.southBoundLatitude,
-                    bbox.eastBoundLongitude,
-                    bbox.northBoundLatitude
-                ];
+                // Получаем границы слоя - проверяем различные свойства
+                let bbox = null;
                 
-                // Преобразуем в проекцию Web Mercator
-                const webMercatorExtent = ol.proj.transformExtent(
-                    extent,
-                    'EPSG:4326',  // исходная система координат (WGS 84)
-                    'EPSG:3857'   // целевая проекция (Web Mercator)
-                );
+                if (targetLayer.EX_GeographicBoundingBox) {
+                    bbox = targetLayer.EX_GeographicBoundingBox;
+                } else if (targetLayer.BoundingBox && targetLayer.BoundingBox.length > 0) {
+                    // Используем первый BoundingBox для EPSG:4326
+                    const wgs84BBox = targetLayer.BoundingBox.find(bbox => bbox.crs === 'CRS:84' || bbox.crs === 'EPSG:4326');
+                    if (wgs84BBox) {
+                        bbox = {
+                            westBoundLongitude: wgs84BBox.minx,
+                            southBoundLatitude: wgs84BBox.miny,
+                            eastBoundLongitude: wgs84BBox.maxx,
+                            northBoundLatitude: wgs84BBox.maxy
+                        };
+                    }
+                }
                 
-                // Вызываем callback с полученным экстентом
-                callback(webMercatorExtent);
+                if (bbox) {
+                    // Преобразуем в формат [minX, minY, maxX, maxY]
+                    const extent = [
+                        bbox.westBoundLongitude,
+                        bbox.southBoundLatitude,
+                        bbox.eastBoundLongitude,
+                        bbox.northBoundLatitude
+                    ];
+                    
+                    console.log('Получен экстент слоя в WGS 84:', extent);
+                    
+                    // Преобразуем в проекцию Web Mercator
+                    const webMercatorExtent = ol.proj.transformExtent(
+                        extent,
+                        'EPSG:4326',  // исходная система координат (WGS 84)
+                        'EPSG:3857'   // целевая проекция (Web Mercator)
+                    );
+                    
+                    console.log('Преобразованный экстент в Web Mercator:', webMercatorExtent);
+                    
+                    // Вызываем callback с полученным экстентом
+                    callback(webMercatorExtent);
+                } else {
+                    console.warn(`Слой ${targetLayerName} найден, но не имеет информации о границах:`, targetLayer);
+                    callback(null);
+                }
             } else {
-                console.warn(`Слой ${workspace}:${layerName} не найден или не имеет информации о границах`);
+                console.warn(`Слой ${targetLayerName} не найден в списке слоев:`, layers.map(l => l.Name || l.name || l.n));
                 callback(null);
             }
         })
         .catch(error => {
-            console.error('Ошибка при получении метаданных слоя:', error);
+            console.error(`Ошибка при получении границ слоя ${workspace}:${layerName}:`, error);
             callback(null);
         });
 }

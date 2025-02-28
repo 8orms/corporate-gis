@@ -1,63 +1,30 @@
-﻿# Игнорировать директории с данными
-/data/postgis/
-/data/geoserver/*/data_dir/
-/data/raster-storage/
-/data/vector-storage/
-/data/user-projections/*
-!/data/user-projections/epsg.properties
+﻿# Игнорирование данных
+/data/*
+!/data/.gitkeep
 
-# Игнорировать логи
-*.log
-logs/
-
-# Игнорировать файлы среды
-.env
-.env.*
-!.env.example
-
-# Игнорировать временные файлы
-*.tmp
-*.temp
-*.swp
-*~
-
-# Игнорировать файлы IDE
-.idea/
+# Игнорирование настроек среды разработки
 .vscode/
-*.iml
-.vs/
+.idea/
 
-# Игнорировать файлы Windows
-Thumbs.db
-desktop.ini
+# Игнорирование временных файлов
+*.tmp
+*.log
+*.bak
 
-# Игнорировать файлы macOS
-.DS_Store
+# Игнорирование конфиденциальных данных
+.env
+.env.dev
+.env.prod
+.env.*
+secrets/
 
-# Игнорировать кэш Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
+# Игнорирование кэша Docker
+.docker/
 
-# Игнорировать пакеты Node.js
-node_modules/
-npm-debug.log
-yarn-error.log
-yarn-debug.log
+# Игнорирование временных файлов PowerShell
+*.ps1.log
+*_history.txt
+
+# Игнорирование резервных копий
+backups/
+*.backup

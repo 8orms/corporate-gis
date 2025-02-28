@@ -3,22 +3,49 @@
 services:
   postgis:
     image: postgis/postgis:15-3.3
-    container_name: postgis
     environment:
-      - POSTGRES_DB=gis
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - PGDATA=${PGDATA}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
     networks:
       - gis_network
     volumes:
       - ../../../data/postgis:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
+      retries: 5
+
+  gis-admin:
+    build:
+      context: ../../../
+      dockerfile: config/docker/dev/django/Dockerfile
+    container_name: gis-admin
+    environment:
+      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
+      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
+      - DB_NAME=${POSTGRES_DB}
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_HOST=${POSTGRES_HOST}
+      - DB_PORT=${POSTGRES_PORT}
+    ports:
+      - "${DJANGO_PORT}:8000"
+    networks:
+      - gis_network
+    volumes:
+      - ../../../src/admin-panel:/app
+    depends_on:
+      - postgis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/admin/", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
       retries: 5
 
   geoserver-vector:
@@ -26,19 +53,18 @@ services:
     container_name: geoserver-vector
     environment:
       - GEOSERVER_DATA_DIR=/opt/geoserver/data_dir
-      - GEOSERVER_ADMIN_USER=admin
-      - GEOSERVER_ADMIN_PASSWORD=geoserver
-      - CATALINA_OPTS=-Dorg.geoserver.web.proxy.base=http://localhost/geoserver/vector -Dorg.geoserver.use.header.proxy=true -DGEOSERVER_CSRF_DISABLED=true
-      - "INITIAL_MEMORY=1G"
-      - "MAXIMUM_MEMORY=2G"
+      - GEOSERVER_ADMIN_USER=${GEOSERVER_ADMIN_USER}
+      - GEOSERVER_ADMIN_PASSWORD=${GEOSERVER_ADMIN_PASSWORD}
+      - CATALINA_OPTS=-Dorg.geoserver.web.proxy.base=http://localhost/geoserver/vector/web -Dorg.geoserver.use.header.proxy=true -DGEOSERVER_CSRF_DISABLED=true
+      - "INITIAL_MEMORY=${GEOSERVER_INITIAL_MEMORY}"
+      - "MAXIMUM_MEMORY=${GEOSERVER_MAXIMUM_MEMORY}"
     ports:
       - "8080:8080"
     networks:
       - gis_network
     volumes:
-      - ../../../data/geoserver/vector/data_dir:/opt/geoserver/data_dir
-      - ../../../data/vector-storage:/opt/geoserver/data_dir/vector-data
-      - ../../../data/user-projections:/opt/geoserver/data_dir/user_projections
+      - ../../../${VECTOR_DATA_PATH}:/opt/geoserver/data_dir
+      - ../../../${PROJECTIONS_PATH}:/opt/geoserver/data_dir/user_projections
     depends_on:
       - postgis
     healthcheck:
@@ -46,25 +72,25 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      
+
   geoserver-ecw:
     image: urbanits/geoserver:master
     container_name: geoserver-ecw
     environment:
       - GEOSERVER_DATA_DIR=/opt/geoserver/data_dir
-      - GEOSERVER_ADMIN_USER=admin
-      - GEOSERVER_ADMIN_PASSWORD=geoserver
+      - GEOSERVER_ADMIN_USER=${GEOSERVER_ADMIN_USER}
+      - GEOSERVER_ADMIN_PASSWORD=${GEOSERVER_ADMIN_PASSWORD}
       - CATALINA_OPTS=-Dorg.geoserver.web.proxy.base=http://localhost/geoserver/ecw -Dorg.geoserver.use.header.proxy=true -DGEOSERVER_CSRF_DISABLED=true
-      - "INITIAL_MEMORY=2G"
-      - "MAXIMUM_MEMORY=4G"
+      - "INITIAL_MEMORY=${GEOSERVER_INITIAL_MEMORY}"
+      - "MAXIMUM_MEMORY=${GEOSERVER_MAXIMUM_MEMORY}"
     ports:
       - "8081:8080"
     networks:
       - gis_network
     volumes:
-      - ../../../data/geoserver/ecw/data_dir:/opt/geoserver/data_dir
-      - ../../../data/raster-storage:/opt/geoserver/data_dir/raster-data
-      - ../../../data/user-projections:/opt/geoserver/data_dir/user_projections
+      - ../../../data/geoserver/ecw:/opt/geoserver/data_dir
+      - ../../../${RASTER_DATA_PATH}:/opt/geoserver/data_dir/raster-data
+      - ../../../${PROJECTIONS_PATH}:/opt/geoserver/data_dir/user_projections
     depends_on:
       - postgis
     healthcheck:
@@ -74,24 +100,19 @@ services:
       retries: 5
 
   nginx:
-    image: nginx:1.26.3
-    container_name: nginx
+    image: nginx:stable
     ports:
-      - "80:80"
+      - "${NGINX_PORT}:80"
     volumes:
-      - ../../nginx/nginx.conf:/etc/nginx/nginx.conf
       - ../../nginx/conf.d:/etc/nginx/conf.d
-      - ../../../src/web-interface:/usr/share/nginx/html
+      - ../../nginx/html:/usr/share/nginx/html
+      - ../../../src/web-interface:/usr/share/nginx/html/webgis
     networks:
       - gis_network
     depends_on:
       - geoserver-vector
       - geoserver-ecw
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - gis-admin
 
 networks:
   gis_network:

@@ -1,0 +1,110 @@
+{
+  "layers": [
+    {
+      "id": "obj1-topo-2023",
+      "type": "raster",
+      "title": "Топографический план Объекта 1 (2023)",
+      "workspace": "TEST",
+      "layerName": "2020-2021",
+      "instance": "ecw",
+      "objectId": "obj1",
+      "category": "topo",
+      "year": "2023",
+      "filePath": "/opt/geoserver/data_dir/raster-data/ecw/obj1/topo-2023.ecw",
+      "visible": true,
+      "tags": ["топография", "объект 1"]
+    },
+    {
+      "id": "obj1-ortho-2023",
+      "type": "raster",
+      "title": "Ортофотоплан Объекта 1 (2023)",
+      "workspace": "raster",
+      "layerName": "ortho_obj1_2023",
+      "instance": "ecw",
+      "objectId": "obj1",
+      "category": "ortho",
+      "year": "2023",
+      "filePath": "/opt/geoserver/data_dir/raster-data/ecw/obj1/ortho-2023.ecw",
+      "visible": false,
+      "tags": ["ортофотоплан", "объект 1"]
+    },
+    {
+      "id": "obj2-topo-2024",
+      "type": "raster",
+      "title": "Топографический план Объекта 2 (2024)",
+      "workspace": "raster",
+      "layerName": "topo_obj2_2024",
+      "instance": "ecw",
+      "objectId": "obj2",
+      "category": "topo",
+      "year": "2024",
+      "filePath": "/opt/geoserver/data_dir/raster-data/ecw/obj2/topo-2024.ecw",
+      "visible": false,
+      "tags": ["топография", "объект 2"]
+    },
+    {
+      "id": "obj1-geology-2023",
+      "type": "vector",
+      "title": "Геологические изыскания Объекта 1 (2023)",
+      "workspace": "vector",
+      "layerName": "geology_obj1_2023",
+      "instance": "vector",
+      "objectId": "obj1",
+      "category": "geology",
+      "year": "2023",
+      "dataStore": "postgis",
+      "tableName": "geology.obj1_survey_2023",
+      "visible": false,
+      "tags": ["геология", "объект 1"]
+    },
+    {
+      "id": "obj2-geology-2024",
+      "type": "vector",
+      "title": "Геологические изыскания Объекта 2 (2024)",
+      "workspace": "vector",
+      "layerName": "geology_obj2_2024",
+      "instance": "vector",
+      "objectId": "obj2",
+      "category": "geology",
+      "year": "2024",
+      "dataStore": "postgis",
+      "tableName": "geology.obj2_survey_2024",
+      "visible": false,
+      "tags": ["геология", "объект 2"]
+    },
+    {
+      "id": "obj1-hydro-2023",
+      "type": "vector",
+      "title": "Гидрология Объекта 1 (2023)",
+      "workspace": "vector",
+      "layerName": "hydro_obj1_2023",
+      "instance": "vector",
+      "objectId": "obj1",
+      "category": "hydro",
+      "year": "2023",
+      "dataStore": "postgis",
+      "tableName": "hydrology.obj1_survey_2023",
+      "visible": false,
+      "tags": ["гидрология", "объект 1"]
+    }
+  ],
+  "objects": [
+    {
+      "id": "obj1",
+      "name": "Объект 1 - Строительство ЛЭП",
+      "bbox": [37.1234, 55.6789, 37.2345, 55.7890]
+    },
+    {
+      "id": "obj2",
+      "name": "Объект 2 - Жилой комплекс",
+      "bbox": [37.3456, 55.8901, 37.4567, 55.9012]
+    }
+  ],
+  "categories": [
+    {"id": "topo", "name": "Топография", "icon": "map"},
+    {"id": "ortho", "name": "Ортофотопланы", "icon": "image"},
+    {"id": "geology", "name": "Геология", "icon": "terrain"},
+    {"id": "hydro", "name": "Гидрология", "icon": "water"},
+    {"id": "ecology", "name": "Экология", "icon": "eco"}
+  ]
+} 

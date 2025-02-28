@@ -6,8 +6,8 @@
 const geoserverUrl = '/geoserver';
 const vectorInstance = 'vector'; // Инстанция для векторных данных
 const rasterInstance = 'ecw';    // Инстанция для растровых данных
-const workspace = 'raster';      // Рабочее пространство для растровых данных
-const layerName = 'landsat';     // Имя слоя растровых данных
+const workspace = 'TEST';      // Рабочее пространство для растровых данных
+const layerName = '2020-2021';     // Имя слоя растровых данных
 
 // Глобальные переменные для доступа к карте и слоям
 let map;
@@ -79,12 +79,14 @@ function initMap() {
                     'LAYERS': `${workspace}:${layerName}`,
                     'TILED': true,
                     'FORMAT': 'image/png',
-                    'VERSION': '1.1.1'
+                    'VERSION': '1.1.1',
+                    'TRANSPARENT': true
                 },
                 serverType: 'geoserver',
                 crossOrigin: 'anonymous'
             }),
-            visible: false
+            visible: true,
+            opacity: 1.0
         });
 
         // Создаем представление карты
@@ -155,35 +157,27 @@ function initMap() {
             });
         });
 
-        // Добавляем обработчик ошибок для растрового слоя
-        const rasterSource = rasterLayer.getSource();
-        rasterSource.on('tileloaderror', function(event) {
-            console.warn('Ошибка загрузки растрового тайла. Возможно слой не опубликован в GeoServer.');
-            
-            // Проверяем, является ли это первой ошибкой
+        // Обработчик ошибки загрузки тайлов для растрового слоя
+        rasterLayer.getSource().on('tileloaderror', function(event) {
+            console.error('Ошибка загрузки растрового тайла:', event);
+            // Создаем предупреждение о проблеме с загрузкой растрового слоя
             if (!window.rasterLayerErrorShown) {
                 window.rasterLayerErrorShown = true;
                 
-                // Получаем чекбокс растрового слоя
-                const rasterLayerCheckbox = document.getElementById('raster-layer');
-                if (rasterLayerCheckbox && rasterLayerCheckbox.checked) {
-                    // Выводим предупреждение только если слой был включен
-                    const warningDiv = document.createElement('div');
-                    warningDiv.className = 'layer-warning';
-                    warningDiv.innerHTML = `
-                        <div class="warning-icon">⚠️</div>
-                        <div class="warning-text">Растровый слой недоступен. Убедитесь, что слой "${workspace}:${layerName}" опубликован в GeoServer.</div>
-                        <button class="warning-close" onclick="this.parentNode.style.display='none';">✕</button>
-                    `;
-                    document.body.appendChild(warningDiv);
-                    
-                    // Скрываем предупреждение через 10 секунд
-                    setTimeout(function() {
-                        if (warningDiv.parentNode) {
-                            warningDiv.style.display = 'none';
-                        }
-                    }, 10000);
-                }
+                const warningDiv = document.createElement('div');
+                warningDiv.className = 'layer-warning';
+                warningDiv.innerHTML = `
+                    <div class="warning-icon">⚠️</div>
+                    <div class="warning-text">Ошибка загрузки растрового слоя "${workspace}:${layerName}". Проверьте настройки GeoServer.</div>
+                    <button class="warning-close" onclick="this.parentNode.style.display='none';">✕</button>
+                `;
+                document.body.appendChild(warningDiv);
+                
+                setTimeout(function() {
+                    if (warningDiv.parentNode) {
+                        warningDiv.style.display = 'none';
+                    }
+                }, 10000);
             }
         });
 
@@ -451,8 +445,11 @@ function handleMapClick(evt) {
  */
 function zoomToRasterLayer() {
     try {
+        console.log('Запрошено приближение к растровому слою');
+        
         // Проверяем, включен ли слой
         if (rasterLayer && !rasterLayer.getVisible()) {
+            console.log('Растровый слой не включен. Включаем...');
             // Если слой не включен, включаем его
             rasterLayer.setVisible(true);
             
@@ -462,23 +459,132 @@ function zoomToRasterLayer() {
             }
         }
         
+        // Показываем индикатор загрузки
+        const loader = document.createElement('div');
+        loader.className = 'layer-loader';
+        loader.innerHTML = 'Загрузка границ слоя...';
+        document.body.appendChild(loader);
+        
+        console.log('Запрашиваем экстент растрового слоя...');
+        
         // Получаем экстент растрового слоя
         getLayerExtent(workspace, layerName, function(extent) {
+            // Скрываем индикатор загрузки
+            if (loader.parentNode) {
+                document.body.removeChild(loader);
+            }
+            
             if (extent && map) {
+                console.log('Получен экстент слоя:', extent);
+                
                 // Приближаем к экстенту слоя с отступом
                 map.getView().fit(extent, {
                     padding: [50, 50, 50, 50],
                     duration: 1000
                 });
+                
+                // Показываем сообщение об успешном приближении
+                const message = document.createElement('div');
+                message.className = 'layer-message success';
+                message.innerHTML = 'Карта приближена к границам растрового слоя';
+                document.body.appendChild(message);
+                
+                // Автоматически скрываем сообщение через 3 секунды
+                setTimeout(function() {
+                    if (message.parentNode) {
+                        document.body.removeChild(message);
+                    }
+                }, 3000);
             } else {
-                // Если не удалось получить экстент, отображаем сообщение
                 console.warn('Не удалось получить границы растрового слоя');
-                // Можно добавить уведомление пользователю
-                alert('Не удалось получить границы растрового слоя. Возможно, слой еще не настроен в GeoServer.');
+                
+                // Если не удалось получить экстент, отображаем сообщение
+                const warning = document.createElement('div');
+                warning.className = 'layer-warning';
+                warning.innerHTML = `
+                    <div class="warning-icon">⚠️</div>
+                    <div class="warning-text">Не удалось получить границы растрового слоя "${workspace}:${layerName}". Возможно, слой еще не настроен в GeoServer.</div>
+                    <button class="warning-close" onclick="this.parentNode.remove();">✕</button>
+                `;
+                document.body.appendChild(warning);
+                
+                // Отправляем запрос напрямую для проверки доступности слоя
+                checkRasterLayerAvailability();
             }
         });
     } catch (error) {
         console.error('Ошибка при приближении к растровому слою:', error);
+    }
+}
+
+/**
+ * Проверка доступности растрового слоя в GeoServer
+ */
+function checkRasterLayerAvailability() {
+    try {
+        console.log('Проверка доступности растрового слоя в GeoServer...');
+        
+        // Формируем URL для запроса GetCapabilities
+        const capabilitiesUrl = `${geoserverUrl}/${rasterInstance}/wms?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`;
+        
+        fetch(capabilitiesUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(text => {
+                // Проверяем наличие нашего слоя в ответе
+                const layerIdentifier = `${workspace}:${layerName}`;
+                if (text.includes(layerIdentifier)) {
+                    console.log(`Слой ${layerIdentifier} найден в GeoServer`);
+                    
+                    // Показываем сообщение, что слой доступен
+                    const message = document.createElement('div');
+                    message.className = 'layer-message';
+                    message.innerHTML = `
+                        <div class="message-icon">✓</div>
+                        <div class="message-text">Слой "${layerIdentifier}" доступен в GeoServer, но возможны проблемы с отображением. Проверьте параметры слоя.</div>
+                        <button class="message-close" onclick="this.parentNode.remove();">✕</button>
+                    `;
+                    document.body.appendChild(message);
+                    
+                    // Автоматически скрываем сообщение через 10 секунд
+                    setTimeout(function() {
+                        if (message.parentNode) {
+                            message.remove();
+                        }
+                    }, 10000);
+                } else {
+                    console.warn(`Слой ${layerIdentifier} не найден в GeoServer`);
+                    
+                    // Показываем сообщение, что слой не найден
+                    const warning = document.createElement('div');
+                    warning.className = 'layer-warning';
+                    warning.innerHTML = `
+                        <div class="warning-icon">⚠️</div>
+                        <div class="warning-text">Слой "${layerIdentifier}" не найден в GeoServer. Проверьте, что слой опубликован с указанным именем.</div>
+                        <button class="warning-close" onclick="this.parentNode.remove();">✕</button>
+                    `;
+                    document.body.appendChild(warning);
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при проверке доступности слоя:', error);
+                
+                // Показываем сообщение об ошибке
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'layer-error';
+                errorMessage.innerHTML = `
+                    <div class="error-icon">❌</div>
+                    <div class="error-text">Ошибка при проверке доступности слоя: ${error.message}</div>
+                    <button class="error-close" onclick="this.parentNode.remove();">✕</button>
+                `;
+                document.body.appendChild(errorMessage);
+            });
+    } catch (error) {
+        console.error('Ошибка при проверке доступности слоя:', error);
     }
 }
 
@@ -634,7 +740,7 @@ function updateLayerPanel() {
     const rasterLabel = document.createElement('label');
     rasterLabel.htmlFor = 'raster-layer';
     rasterLabel.className = 'layer-name';
-    rasterLabel.textContent = 'Растровый слой';
+    rasterLabel.textContent = `${workspace}:${layerName} (ECW)`;
     
     const actions = document.createElement('div');
     actions.className = 'layer-actions';

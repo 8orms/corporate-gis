@@ -1,0 +1,51 @@
+---
+description: Keep storybook.md updated with all significant changes
+globs: "**/{storybook,README}.md"
+alwaysApply: false
+---
+
+# Storybook Documentation Practices
+
+## Documentation Guidelines
+- Use `.\manage-gis.ps1 update-storybook` to log development activities
+- Document all configuration changes, errors encountered, and their solutions
+- Format entries with date, task name, completion status, and concise description
+
+## Entry Format
+```markdown
+## [YYYY-MM-DD] Task Name
+
+**Status:** Completed/In Progress/Blocked
+
+### Changes Made
+- Description of change 1
+- Description of change 2
+
+### Issues Encountered
+- Issue 1: Description and solution
+- Issue 2: Description and solution
+
+### Next Steps
+- Upcoming task 1
+- Upcoming task 2
+```
+
+## Example
+```markdown
+## [2024-02-28] GeoServer Configuration Update
+
+**Status:** Completed
+
+### Changes Made
+- Updated GeoServer Vector instance to version 2.26.1
+- Modified proxy_base_url to correctly handle HTTPS requests
+- Added custom projection for local coordinate system
+
+### Issues Encountered
+- HTTP 503 errors: Fixed by increasing NGINX proxy timeout settings
+- Missing projections: Resolved by adding custom EPSG definition to user_projections folder
+
+### Next Steps
+- Test WMS service performance with new configuration
+- Update documentation for custom projections
+``` 

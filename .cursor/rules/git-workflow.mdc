@@ -1,0 +1,104 @@
+---
+description: Follow Git workflow best practices
+globs: "**/*.{ps1,md,git*}"
+alwaysApply: false
+---
+
+# Git Workflow Best Practices
+
+## Commit Guidelines
+- Commit logical changes with descriptive messages
+- Before major changes: `git checkout -b feature-name`
+- Update storybook.md with each significant commit
+- After testing: `git push origin feature-name`
+
+## Branch Naming Conventions
+- **Feature branches**: `feature/descriptive-name`
+- **Bug fixes**: `bugfix/issue-description`
+- **Hotfixes**: `hotfix/critical-issue`
+- **Documentation**: `docs/what-was-documented`
+
+## Recommended Workflow
+1. **Start new work**:
+   ```bash
+   git checkout main
+   git pull
+   git checkout -b feature/new-feature
+   ```
+
+2. **Make changes and commit**:
+   ```bash
+   git add .
+   git commit -m "Descriptive message about changes"
+   ```
+
+3. **Update storybook**:
+   ```bash
+   .\manage-gis.ps1 update-storybook
+   git add storybook.md
+   git commit -m "Update storybook with feature progress"
+   ```
+
+4. **Push changes**:
+   ```bash
+   git push origin feature/new-feature
+   ```
+
+5. **Create pull request**:
+   - Open repository in browser
+   - Create PR from feature branch to main
+   - Assign reviewers
+   - Link related issues
+
+## Example PowerShell Git Helper Function
+```powershell
+function Start-FeatureBranch {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$FeatureName,
+        
+        [Parameter(Mandatory = $false)]
+        [string]$BaseBranch = "main"
+    )
+    
+    # Validate feature name format
+    if ($FeatureName -notmatch '^[a-z0-9-]+$') {
+        Write-Error "Feature name must only contain lowercase letters, numbers, and hyphens"
+        return
+    }
+    
+    # Make sure we have latest base branch
+    git fetch origin
+    
+    # Check if branch already exists
+    $branchExists = git show-ref --verify --quiet refs/heads/feature/$FeatureName
+    if ($LASTEXITCODE -eq 0) {
+        Write-Warning "Branch feature/$FeatureName already exists locally"
+        $switchTo = Read-Host "Switch to existing branch? (Y/N)"
+        if ($switchTo -eq 'Y') {
+            git checkout feature/$FeatureName
+            return
+        } else {
+            return
+        }
+    }
+    
+    # Check if we're in a clean state
+    $status = git status --porcelain
+    if ($status) {
+        Write-Warning "Working directory not clean. Please commit or stash changes first."
+        return
+    }
+    
+    # Switch to base branch and pull latest
+    git checkout $BaseBranch
+    git pull origin $BaseBranch
+    
+    # Create and switch to new feature branch
+    git checkout -b feature/$FeatureName
+    
+    Write-Host "Created and switched to branch feature/$FeatureName based on $BaseBranch" -ForegroundColor Green
+    Write-Host "Ready to start working on new feature!" -ForegroundColor Cyan
+}
+``` 

@@ -1,0 +1,66 @@
+---
+description: Follow best practices for NGINX configuration
+globs: "**/*.{conf,nginx}"
+alwaysApply: false
+---
+
+# NGINX Configuration Best Practices
+
+## Configuration Guidelines
+- Avoid using regular expressions in location blocks with proxy_pass containing URIs
+- Set correct proxy headers for GeoServer communication
+- Configure proper error handling and logging
+
+## Common Issues and Solutions
+- **Incorrect proxy headers**: Ensure Host header is properly set for backend services
+- **Caching issues**: Configure appropriate cache control headers for WMS/WFS services
+- **URI handling problems**: Be careful with trailing slashes in proxy_pass statements
+
+## Example Configuration
+```nginx
+# Example NGINX configuration for GeoServer proxying
+
+# Vector GeoServer
+location /geoserver-vector/ {
+    proxy_pass http://vector-geoserver:8080/geoserver/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    
+    # Timeouts
+    proxy_connect_timeout 300s;
+    proxy_send_timeout 300s;
+    proxy_read_timeout 300s;
+    
+    # Buffer settings
+    proxy_buffer_size 128k;
+    proxy_buffers 4 256k;
+    proxy_busy_buffers_size 256k;
+    
+    # Error handling
+    proxy_intercept_errors on;
+    error_page 500 502 503 504 /error.html;
+}
+
+# ECW GeoServer
+location /geoserver-ecw/ {
+    proxy_pass http://ecw-geoserver:8080/geoserver/;
+    # Same proxy settings as vector GeoServer
+    # ...
+}
+
+# Cache settings for WMS tiles
+location ~* /geoserver-(vector|ecw)/wms {
+    proxy_pass http://$1-geoserver:8080/geoserver/wms;
+    # Same proxy settings as above
+    # ...
+    
+    # Cache control
+    expires 1d;
+    add_header Cache-Control "public";
+    proxy_cache geoserver_cache;
+    proxy_cache_valid 200 302 1d;
+    proxy_cache_use_stale error timeout invalid_header updating http_500 http_502 http_503 http_504;
+}
+``` 

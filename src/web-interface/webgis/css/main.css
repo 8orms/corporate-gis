@@ -1,0 +1,208 @@
+/* Main CSS file for the GIS platform */
+
+:root {
+    --primary: #3498db;
+    --primary-dark: #2980b9;
+    --secondary: #2ecc71;
+    --secondary-dark: #27ae60;
+    --text: #333;
+    --light-text: #777;
+    --background: #f5f7fa;
+    --light-gray: #ecf0f1;
+    --dark-gray: #7f8c8d;
+    --border: #ddd;
+    --shadow: rgba(0, 0, 0, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--background);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Заголовок */
+.header {
+    background-color: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px var(--shadow);
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.nav-link {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    color: var(--primary);
+}
+
+/* Основное содержимое */
+.main-content {
+    flex: 1;
+    display: flex;
+}
+
+/* Боковая панель */
+.sidebar {
+    width: 300px;
+    background-color: white;
+    border-right: 1px solid var(--border);
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+/* Компонент карты */
+.map-container {
+    flex: 1;
+    height: calc(100vh - 60px); /* Высота экрана минус высота заголовка */
+    position: relative;
+}
+
+/* Панель инструментов карты */
+.map-toolbar {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1000;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px var(--shadow);
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.tool-button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background-color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tool-button:hover {
+    background-color: var(--light-gray);
+}
+
+/* Панель слоев */
+.layers-panel {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px var(--shadow);
+    padding: 1rem;
+    width: 300px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+}
+
+.layers-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.layer-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+.layer-item:hover {
+    background-color: var(--light-gray);
+}
+
+.layer-visibility {
+    margin-right: 0.5rem;
+}
+
+.layer-name {
+    flex: 1;
+}
+
+.layer-controls {
+    display: flex;
+    gap: 0.25rem;
+}
+
+/* Кнопки и формы */
+.button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.button-primary {
+    background-color: var(--primary);
+    color: white;
+}
+
+.button-primary:hover {
+    background-color: var(--primary-dark);
+}
+
+.button-secondary {
+    background-color: var(--secondary);
+    color: white;
+}
+
+.button-secondary:hover {
+    background-color: var(--secondary-dark);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+    
+    .layers-panel {
+        width: 250px;
+    }
+} 

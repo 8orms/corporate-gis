@@ -1,0 +1,97 @@
+---
+description: Ensure environment variables are properly loaded
+globs: "**/*.{ps1,env,yml,yaml}"
+alwaysApply: false
+---
+
+# Environment Variables Management
+
+## Best Practices
+- Check .env file exists and has correct values before starting services
+- If seeing 'variable is not set' warnings, run: `Copy-Item -Path .env.dev -Destination .env -Force`
+- Remember that changes to .env require container restart to take effect
+
+## Common Issues and Solutions
+- **Missing variables**: Compare .env with .env.example to identify missing variables
+- **Invalid paths**: Ensure all file paths use correct format for Windows (use \ or escaped \\)
+- **Container restart needed**: After changing .env, restart containers with `.\manage-gis.ps1 restart`
+
+## Example Verification Script
+```powershell
+# Function to verify environment variables
+function Test-EnvironmentVariables {
+    [CmdletBinding()]
+    param (
+        [string]$EnvFile = ".env",
+        [string]$TemplateFile = ".env.example"
+    )
+    
+    Write-Host "Checking environment variables in $EnvFile..." -ForegroundColor Cyan
+    
+    # Check if .env file exists
+    if (-not (Test-Path $EnvFile)) {
+        Write-Warning "Environment file $EnvFile not found."
+        if (Test-Path $TemplateFile) {
+            $createEnv = Read-Host "Would you like to create $EnvFile from $TemplateFile? (Y/N)"
+            if ($createEnv -eq 'Y') {
+                Copy-Item -Path $TemplateFile -Destination $EnvFile
+                Write-Host "$EnvFile created successfully from template." -ForegroundColor Green
+            } else {
+                return $false
+            }
+        } else {
+            Write-Error "Neither $EnvFile nor template file $TemplateFile exist."
+            return $false
+        }
+    }
+    
+    # Read example file to get required variables
+    if (Test-Path $TemplateFile) {
+        $exampleVars = Get-Content $TemplateFile | Where-Object { $_ -match '^\s*[A-Za-z0-9_]+=.+' } | ForEach-Object {
+            if ($_ -match '^\s*([A-Za-z0-9_]+)=') {
+                return $Matches[1]
+            }
+        }
+        
+        # Read current .env file
+        $currentEnv = Get-Content $EnvFile | Where-Object { $_ -match '^\s*[A-Za-z0-9_]+=.+' } | ForEach-Object {
+            if ($_ -match '^\s*([A-Za-z0-9_]+)=(.*)') {
+                return @{
+                    Name = $Matches[1]
+                    Value = $Matches[2]
+                }
+            }
+        }
+        
+        # Check for missing variables
+        $missingVars = @()
+        $emptyVars = @()
+        foreach ($var in $exampleVars) {
+            $current = $currentEnv | Where-Object { $_.Name -eq $var }
+            if ($null -eq $current) {
+                $missingVars += $var
+            } elseif ([string]::IsNullOrWhiteSpace($current.Value)) {
+                $emptyVars += $var
+            }
+        }
+        
+        if ($missingVars.Count -gt 0) {
+            Write-Warning "Missing variables in $EnvFile: $($missingVars -join ', ')"
+        }
+        
+        if ($emptyVars.Count -gt 0) {
+            Write-Warning "Variables with empty values in $EnvFile: $($emptyVars -join ', ')"
+        }
+        
+        if ($missingVars.Count -eq 0 -and $emptyVars.Count -eq 0) {
+            Write-Host "All environment variables are properly set." -ForegroundColor Green
+            return $true
+        } else {
+            return $false
+        }
+    } else {
+        Write-Warning "Template file $TemplateFile not found. Cannot verify required variables."
+        return $true  # Return true since we can't verify
+    }
+}
+``` 

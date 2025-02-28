@@ -1,0 +1,55 @@
+---
+description: Prefer PowerShell commands for platform management
+globs: "**/*.ps1"
+alwaysApply: false
+---
+
+# PowerShell Commands for Platform Management
+
+## Best Practices
+- Use manage-gis.ps1 script for all platform operations: `.\manage-gis.ps1 <command> [options]`
+- For Docker-related operations, use .\manage-gis.ps1 instead of direct docker or docker-compose commands
+- Always check for error codes and handle them: `if ($LASTEXITCODE -ne 0) { Write-Error 'Command failed' }`
+
+## HTTP Requests in PowerShell
+- Do NOT use `curl` in scripts - in PowerShell it's an alias for `Invoke-WebRequest` with different parameters
+- Use `Invoke-WebRequest` or `Invoke-RestMethod` for HTTP requests:
+  ```powershell
+  # Check if a service is available
+  try {
+      $response = Invoke-WebRequest -Uri "http://localhost:8080/geoserver/" -UseBasicParsing -TimeoutSec 10
+      Write-Host "Service is available. Status code: $($response.StatusCode)"
+  } catch {
+      Write-Error "Service unavailable: $_"
+  }
+  
+  # Get JSON data
+  $data = Invoke-RestMethod -Uri "http://localhost:8000/api/layers" -UseBasicParsing
+  
+  # POST data
+  $body = @{
+      name = "test-layer"
+      type = "vector"
+  } | ConvertTo-Json
+  $response = Invoke-RestMethod -Uri "http://localhost:8000/api/layers" -Method Post -Body $body -ContentType "application/json"
+  ```
+
+## Example Commands
+```powershell
+# Start the GIS platform
+.\manage-gis.ps1 start
+
+# Check status of services
+.\manage-gis.ps1 status
+
+# Create a backup
+.\manage-gis.ps1 backup
+
+# Error handling example
+.\manage-gis.ps1 start
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Failed to start GIS platform"
+    # Additional error handling...
+}
+```
+

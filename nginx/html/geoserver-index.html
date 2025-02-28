@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор GeoServer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .geoserver-options {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .option-card {
+            flex: 1 0 300px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .option-card h2 {
+            margin-top: 0;
+            color: #3498db;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .back-link {
+            margin-top: 20px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Выбор инстанции GeoServer</h1>
+        
+        <p>Выберите инстанцию GeoServer для доступа:</p>
+        
+        <div class="geoserver-options">
+            <div class="option-card">
+                <h2>Vector GeoServer</h2>
+                <p>Инстанция GeoServer для работы с векторными данными.</p>
+                <p><strong>Доступные функции:</strong></p>
+                <ul>
+                    <li>WMS/WFS сервисы</li>
+                    <li>Векторные слои</li>
+                    <li>Стилизация</li>
+                </ul>
+                <a href="/geoserver/vector/web/" class="btn">Открыть Vector GeoServer</a>
+            </div>
+            
+            <div class="option-card">
+                <h2>ECW GeoServer</h2>
+                <p>Инстанция GeoServer для работы с растровыми данными ECW.</p>
+                <p><strong>Доступные функции:</strong></p>
+                <ul>
+                    <li>WMS/WCS сервисы</li>
+                    <li>Растровые слои ECW</li>
+                    <li>Оптимизированный рендеринг</li>
+                </ul>
+                <a href="/geoserver/ecw/web/" class="btn">Открыть ECW GeoServer</a>
+            </div>
+        </div>
+        
+        <a href="/" class="back-link">← Вернуться на главную</a>
+    </div>
+</body>
+</html> 

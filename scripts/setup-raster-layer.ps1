@@ -312,7 +312,7 @@ function Test-RasterLayer {
         $response = Invoke-WebRequest -Uri $url -UseBasicParsing
         
         if ($response.StatusCode -eq 200) {
-            Write-Log "WMS сервис доступен, проверьте наличие слоя $Workspace:$LayerName в GetCapabilities ответе" -Level "INFO"
+            Write-Log "WMS сервис доступен, проверьте наличие слоя ${Workspace}:${LayerName} в GetCapabilities ответе" -Level "INFO"
             return $true
         }
         else {

@@ -1,0 +1,51 @@
+---
+description: Always verify Docker Desktop is running before executing container operations
+globs: "**/*docker*.{ps1,yml,yaml}"
+alwaysApply: false
+---
+
+# Docker Health Check Practices
+
+## Verification Steps
+- Check Docker service status: `Get-Service -Name com.docker.service`
+- Verify Docker daemon connectivity: `docker info`
+- If Docker Desktop isn't responding, restart it before proceeding
+
+## Example Script
+```powershell
+# Check if Docker service is running
+$dockerService = Get-Service -Name com.docker.service -ErrorAction SilentlyContinue
+if ($dockerService -eq $null -or $dockerService.Status -ne 'Running') {
+    Write-Warning "Docker service is not running. Attempting to start Docker Desktop..."
+    Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+    
+    # Wait for Docker to start
+    $retries = 0
+    $maxRetries = 10
+    do {
+        Start-Sleep -Seconds 5
+        $retries++
+        Write-Host "Waiting for Docker to start... ($retries/$maxRetries)"
+        $dockerService = Get-Service -Name com.docker.service -ErrorAction SilentlyContinue
+    } while (($dockerService -eq $null -or $dockerService.Status -ne 'Running') -and $retries -lt $maxRetries)
+    
+    if ($dockerService -eq $null -or $dockerService.Status -ne 'Running') {
+        Write-Error "Failed to start Docker Desktop after $maxRetries attempts."
+        exit 1
+    }
+}
+
+# Verify Docker connectivity
+try {
+    $dockerInfo = docker info 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Docker is running but not responsive. Please restart Docker Desktop manually."
+        exit 1
+    }
+} catch {
+    Write-Error "Failed to connect to Docker: $_"
+    exit 1
+}
+
+Write-Host "Docker is running and responsive. Proceeding with container operations..."
+``` 

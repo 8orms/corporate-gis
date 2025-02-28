@@ -1,0 +1,28 @@
+{
+  "name": "gis-webgis",
+  "version": "1.0.0",
+  "description": "WebGIS интерфейс для корпоративной ГИС-платформы",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .js,.vue"
+  },
+  "dependencies": {
+    "vue": "^3.4.15",
+    "ol": "^8.2.0",
+    "axios": "^1.6.7",
+    "pinia": "^2.1.7",
+    "vue-router": "^4.2.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.3",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^8.56.0",
+    "eslint-plugin-vue": "^9.20.1",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
+    "vite": "^5.0.12"
+  }
+} 

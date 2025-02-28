@@ -1,0 +1,110 @@
+---
+description: Steps to handle Docker connectivity issues
+globs: "**/*.{ps1,bat,cmd}"
+alwaysApply: false
+---
+
+# Docker Troubleshooting Procedures
+
+## Common Issues and Solutions
+
+### "Unable to connect to the remote server" errors
+1. Check Docker Desktop UI status first
+2. Verify Docker service is running in Windows Services
+3. Try restarting Docker Desktop normally
+4. If restart fails, use Task Manager to force-quit Docker processes
+
+### "pipe/dockerDesktopLinuxEngine" errors
+1. Restart Docker Desktop completely
+2. If restart doesn't work, check Windows Event Logs for Docker-related errors
+3. Ensure Hyper-V and Windows Virtualization features are enabled
+
+### Docker service won't restart
+1. Open Task Manager and end all Docker-related processes
+2. Start Docker Desktop manually
+3. Check Windows Event Logs for any Windows container or Hyper-V related errors
+
+## Example Troubleshooting Script
+```powershell
+# Function to troubleshoot Docker connectivity issues
+function Repair-DockerConnectivity {
+    [CmdletBinding()]
+    param()
+    
+    Write-Host "Starting Docker troubleshooting process..." -ForegroundColor Cyan
+    
+    # Check Docker service status
+    $dockerService = Get-Service -Name com.docker.service -ErrorAction SilentlyContinue
+    if ($dockerService -eq $null) {
+        Write-Warning "Docker service not found. Is Docker Desktop installed?"
+        return $false
+    }
+    
+    Write-Host "Docker service status: $($dockerService.Status)"
+    
+    # If service is running but Docker still not responsive
+    if ($dockerService.Status -eq 'Running') {
+        Write-Host "Docker service is running but may be unresponsive. Attempting restart..." -ForegroundColor Yellow
+        try {
+            # Try graceful restart first
+            Stop-Service -Name com.docker.service -Force
+            Start-Sleep -Seconds 5
+            Start-Service -Name com.docker.service
+            Start-Sleep -Seconds 10
+            
+            # Check if responsive
+            $dockerInfo = docker info 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "Docker successfully restarted and is now responsive." -ForegroundColor Green
+                return $true
+            }
+            
+            # If still unresponsive, try killing processes
+            Write-Host "Docker still unresponsive. Attempting to kill Docker processes..." -ForegroundColor Yellow
+            Get-Process *docker* | Stop-Process -Force
+            Start-Sleep -Seconds 5
+            Start-Process -FilePath "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+            
+            # Wait for Docker to start
+            $maxRetries = 12
+            for ($i = 1; $i -le $maxRetries; $i++) {
+                Write-Host "Waiting for Docker to initialize... ($i/$maxRetries)"
+                Start-Sleep -Seconds 10
+                $dockerInfo = docker info 2>&1
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Host "Docker successfully restarted and is now responsive." -ForegroundColor Green
+                    return $true
+                }
+            }
+            
+            Write-Error "Failed to restore Docker connectivity after multiple attempts."
+            return $false
+        }
+        catch {
+            Write-Error "Error during Docker restart: $_"
+            return $false
+        }
+    }
+    else {
+        # Service not running, try to start it
+        Write-Host "Docker service not running. Attempting to start..." -ForegroundColor Yellow
+        try {
+            Start-Service -Name com.docker.service
+            Start-Sleep -Seconds 10
+            $dockerInfo = docker info 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "Docker successfully started and is responsive." -ForegroundColor Green
+                return $true
+            }
+            else {
+                Write-Error "Docker service started but Docker is not responsive."
+                return $false
+            }
+        }
+        catch {
+            Write-Error "Error starting Docker service: $_"
+            return $false
+        }
+    }
+}
+```

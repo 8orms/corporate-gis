@@ -214,55 +214,188 @@ yarn-debug.log
     }
 }
 
-# Создание примера файла .env
-function Create-EnvExample {
-    Write-Title "Создание примера файла .env"
+# Создание файлов .env
+function Create-EnvFiles {
+    param([string]$Environment)
+    
+    Write-Title "Настройка файлов переменных окружения"
     
     $envExamplePath = ".env.example"
     $envExampleContent = @"
-# Настройки базы данных PostGIS
-POSTGRES_USER=gis_admin
-POSTGRES_PASSWORD=strongpassword
-POSTGRES_DB=gis_db
-POSTGIS_HOST=postgis
-POSTGIS_PORT=5432
+# Этот файл является шаблоном для создания .env файлов
+# Скопируйте его в .env.dev или .env.prod и настройте соответствующие значения
 
-# Настройки GeoServer
+# PostgreSQL
+POSTGRES_DB=gis
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=secure_password_here
+POSTGRES_HOST=postgis
+POSTGRES_PORT=5432
+PGDATA=/var/lib/postgresql/data/pgdata
+
+# GeoServer
 GEOSERVER_ADMIN_USER=admin
-GEOSERVER_ADMIN_PASSWORD=geoserver
+GEOSERVER_ADMIN_PASSWORD=secure_password_here
 GEOSERVER_DATA_DIR=/opt/geoserver/data_dir
-GEOSERVER_VECTOR_HTTP_PORT=8080
-GEOSERVER_ECW_HTTP_PORT=8081
+GEOSERVER_PORT=8080
+GEOSERVER_INITIAL_MEMORY=512M
+GEOSERVER_MAXIMUM_MEMORY=1G
+GEOSERVER_PROXY_BASE_URL=http://localhost:8080/geoserver
 
-# Настройки путей хранения данных
-VECTOR_DATA_PATH=./data/vector-storage
+# Django Admin
+DJANGO_SUPERUSER_USERNAME=admin
+DJANGO_SUPERUSER_PASSWORD=secure_password_here
+DJANGO_SUPERUSER_EMAIL=admin@example.com
+DJANGO_PORT=8000
+
+# Пути к данным
+VECTOR_DATA_PATH=./data/geoserver/vector
 RASTER_DATA_PATH=./data/raster-storage
-POSTGIS_DATA_PATH=./data/postgis
+PROJECTIONS_PATH=./config/geoserver/projections
 
-# Настройки для разработки
-DEVELOPMENT_MODE=true
-DEBUG=true
+# Nginx
+NGINX_PORT=80
+NGINX_HTTPS_PORT=443
 
-# Настройки для продакшена
-# DEVELOPMENT_MODE=false
-# DEBUG=false
+# Другие настройки
+TZ=Europe/Moscow
+ENVIRONMENT=dev  # Измените на 'prod' для продакшен-окружения
+
+# Настройки для продакшена (раскомментируйте и настройте для .env.prod)
+# SSL_CERT_PATH=/path/to/ssl/cert.pem
+# SSL_KEY_PATH=/path/to/ssl/key.pem
+# BACKUP_PATH=/path/to/backups
+# LOG_LEVEL=INFO
 "@
     
+    # Создание .env.example
     if (-not (Test-Path $envExamplePath) -or $Force) {
         Write-Step "Создание файла $envExamplePath"
-        Set-Content -Path $envExamplePath -Value $envExampleContent
+        Set-Content -Path $envExamplePath -Value $envExampleContent -Encoding UTF8
     }
     else {
         Write-Warning "Файл $envExamplePath уже существует. Пропуск."
     }
     
+    # Создание .env.dev
+    $envDevPath = ".env.dev"
+    $envDevContent = @"
+# Конфигурация для разработки (development)
+
+# PostgreSQL
+POSTGRES_DB=gis
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_HOST=postgis
+POSTGRES_PORT=5432
+PGDATA=/var/lib/postgresql/data/pgdata
+
+# GeoServer
+GEOSERVER_ADMIN_USER=admin
+GEOSERVER_ADMIN_PASSWORD=geoserver
+GEOSERVER_DATA_DIR=/opt/geoserver/data_dir
+GEOSERVER_PORT=8080
+GEOSERVER_INITIAL_MEMORY=512M
+GEOSERVER_MAXIMUM_MEMORY=1G
+GEOSERVER_PROXY_BASE_URL=http://localhost:8080/geoserver
+
+# Django Admin
+DJANGO_SUPERUSER_USERNAME=admin
+DJANGO_SUPERUSER_PASSWORD=admin
+DJANGO_SUPERUSER_EMAIL=admin@example.com
+DJANGO_PORT=8000
+
+# Пути к данным
+VECTOR_DATA_PATH=./data/geoserver/vector
+RASTER_DATA_PATH=./data/raster-storage
+PROJECTIONS_PATH=./config/geoserver/projections
+
+# Nginx
+NGINX_PORT=80
+NGINX_HTTPS_PORT=443
+
+# Другие настройки
+TZ=Europe/Moscow
+ENVIRONMENT=dev
+LOG_LEVEL=DEBUG
+"@
+    
+    if (-not (Test-Path $envDevPath) -or $Force) {
+        Write-Step "Создание файла $envDevPath"
+        Set-Content -Path $envDevPath -Value $envDevContent -Encoding UTF8
+    }
+    else {
+        Write-Warning "Файл $envDevPath уже существует. Пропуск."
+    }
+    
+    # Создание .env.prod
+    $envProdPath = ".env.prod"
+    $envProdContent = @"
+# Конфигурация для продакшена (production)
+# ВНИМАНИЕ: Замените все пароли на безопасные значения!
+
+# PostgreSQL
+POSTGRES_DB=gis
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=strong_password_change_me
+POSTGRES_HOST=postgis
+POSTGRES_PORT=5432
+PGDATA=/var/lib/postgresql/data/pgdata
+
+# GeoServer
+GEOSERVER_ADMIN_USER=admin
+GEOSERVER_ADMIN_PASSWORD=strong_password_change_me
+GEOSERVER_DATA_DIR=/opt/geoserver/data_dir
+GEOSERVER_PORT=8080
+GEOSERVER_INITIAL_MEMORY=2G
+GEOSERVER_MAXIMUM_MEMORY=6G
+GEOSERVER_PROXY_BASE_URL=https://gis.example.com/geoserver
+
+# Django Admin
+DJANGO_SUPERUSER_USERNAME=admin
+DJANGO_SUPERUSER_PASSWORD=strong_password_change_me
+DJANGO_SUPERUSER_EMAIL=admin@example.com
+DJANGO_PORT=8000
+
+# Пути к данным
+VECTOR_DATA_PATH=./data/geoserver/vector
+RASTER_DATA_PATH=./data/raster-storage
+PROJECTIONS_PATH=./config/geoserver/projections
+
+# Nginx
+NGINX_PORT=80
+NGINX_HTTPS_PORT=443
+
+# SSL настройки
+SSL_CERT_PATH=/etc/ssl/certs/gis.example.com.pem
+SSL_KEY_PATH=/etc/ssl/private/gis.example.com.key
+
+# Другие настройки
+TZ=Europe/Moscow
+ENVIRONMENT=prod
+LOG_LEVEL=INFO
+BACKUP_PATH=/var/backups/gis
+"@
+    
+    if (-not (Test-Path $envProdPath) -or $Force) {
+        Write-Step "Создание файла $envProdPath"
+        Set-Content -Path $envProdPath -Value $envProdContent -Encoding UTF8
+    }
+    else {
+        Write-Warning "Файл $envProdPath уже существует. Пропуск."
+    }
+    
+    # Копирование соответствующего .env файла в зависимости от окружения
     $envPath = ".env"
-    if (-not (Test-Path $envPath)) {
-        Write-Step "Создание файла .env на основе примера"
-        Copy-Item -Path $envExamplePath -Destination $envPath
+    $sourceEnvPath = if ($Environment -eq "dev") { $envDevPath } else { $envProdPath }
+    
+    if (-not (Test-Path $envPath) -or $Force) {
+        Write-Step "Создание файла .env на основе $sourceEnvPath для окружения $Environment"
+        Copy-Item -Path $sourceEnvPath -Destination $envPath
     }
     else {
         Write-Warning "Файл .env уже существует. Пропуск."
+        Write-Step "Для обновления файла .env используйте команду: Copy-Item -Path $sourceEnvPath -Destination $envPath -Force"
     }
 }
 
@@ -1057,7 +1190,7 @@ function Initialize-Project {
     # Создание структуры директорий и файлов
     Create-DirectoryStructure
     Create-GitIgnore
-    Create-EnvExample
+    Create-EnvFiles -Environment $Environment
     Create-DockerCompose -Environment $Environment
     Create-NginxConfig
     Create-HTMLInterface
