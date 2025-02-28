@@ -1,0 +1,99 @@
+/**
+ * Стили для инструментов измерения
+ */
+
+/* Базовый стиль для всплывающих подсказок */
+.ol-tooltip {
+    position: relative;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 4px;
+    color: white;
+    padding: 6px 10px;
+    white-space: nowrap;
+    font-size: 12px;
+    font-family: Arial, sans-serif;
+    border: 1px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    opacity: 0.9;
+    z-index: 1000;
+}
+
+/* Подсказка измерения */
+.ol-tooltip-measure {
+    background: rgba(255, 204, 51, 0.9);
+    color: black;
+    border: 1px solid #ffcc33;
+    font-weight: bold;
+}
+
+/* Статический тултип (фиксированный после завершения измерения) */
+.ol-tooltip-static {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: black;
+    border: 1px solid #cccccc;
+    transition: opacity 0.3s;
+}
+
+/* Скрытый тултип */
+.ol-tooltip.hidden {
+    display: none;
+}
+
+/* Панель инструментов измерения */
+.measurement-tools {
+    position: absolute;
+    top: 180px;
+    left: 10px;
+    background: white;
+    padding: 10px;
+    border-radius: 4px;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    font-family: Arial, sans-serif;
+}
+
+.measurement-tools button {
+    display: block;
+    width: 100%;
+    margin-bottom: 5px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 3px;
+    background: #3498db;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.3s;
+}
+
+.measurement-tools button:hover {
+    background: #2980b9;
+}
+
+.measurement-tools button.active {
+    background: #e74c3c;
+}
+
+.measurement-tools button:last-child {
+    margin-bottom: 0;
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+    .measurement-tools {
+        top: auto;
+        bottom: 60px;
+        left: 10px;
+    }
+    
+    .measurement-tools button {
+        padding: 10px 15px; /* Увеличиваем размер для удобства на сенсорных экранах */
+        font-size: 14px;
+    }
+    
+    .ol-tooltip {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+} 

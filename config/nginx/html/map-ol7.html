@@ -10,6 +10,8 @@
     <script src="js/ol7.js"></script>
     <!-- Добавляем jQuery для упрощения обработки AJAX и других задач -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Подключаем стили для инструментов измерения -->
+    <link rel="stylesheet" href="css/measurement.css" type="text/css">
     <style>
         html, body {
             margin: 0;
@@ -96,6 +98,14 @@
             <h2>Просмотр растрового слоя: 2020-2021</h2>
         </div>
         <div id="map"></div>
+        
+        <!-- Добавляем панель инструментов измерения -->
+        <div class="measurement-tools">
+            <button id="measure-distance">Измерить расстояние</button>
+            <button id="measure-area">Измерить площадь</button>
+            <button id="measure-clear">Очистить измерения</button>
+        </div>
+        
         <div class="layer-switcher">
             <h4>Базовые слои</h4>
             <label>
@@ -167,6 +177,8 @@
         </div>
     </div>
 
+    <!-- Подключаем скрипт инструментов измерения для OpenLayers 7 -->
+    <script src="js/measurement-tools-ol7.js"></script>
     <script>
         // Инициализация карты после загрузки страницы
         document.addEventListener('DOMContentLoaded', function() {
@@ -680,7 +692,7 @@
                 // Загрузка доступных векторных слоев
                 loadAvailableVectorLayers();
                 
-                // Добавляем дополнительные стили для новых элементов
+                // Добавляем дополнительные стили
                 var style = document.createElement('style');
                 style.textContent = `
                     .vector-layers {
@@ -723,6 +735,49 @@
                     }
                 `;
                 document.head.appendChild(style);
+                
+                // Инициализация инструментов измерения
+                var measurementTools = new MeasurementTools(map, {
+                    distanceUnit: 'kilometers',
+                    areaUnit: 'hectares',
+                    precision: 2
+                });
+                
+                // Обработчики кнопок инструментов измерения
+                document.getElementById('measure-distance').addEventListener('click', function() {
+                    if (this.classList.contains('active')) {
+                        this.classList.remove('active');
+                        measurementTools.stopMeasure();
+                    } else {
+                        // Сбрасываем активность других кнопок
+                        document.querySelectorAll('.measurement-tools button').forEach(function(btn) {
+                            btn.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        measurementTools.startMeasureDistance();
+                    }
+                });
+                
+                document.getElementById('measure-area').addEventListener('click', function() {
+                    if (this.classList.contains('active')) {
+                        this.classList.remove('active');
+                        measurementTools.stopMeasure();
+                    } else {
+                        // Сбрасываем активность других кнопок
+                        document.querySelectorAll('.measurement-tools button').forEach(function(btn) {
+                            btn.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        measurementTools.startMeasureArea();
+                    }
+                });
+                
+                document.getElementById('measure-clear').addEventListener('click', function() {
+                    measurementTools.clearMeasurements();
+                    document.querySelectorAll('.measurement-tools button').forEach(function(btn) {
+                        btn.classList.remove('active');
+                    });
+                });
 
                 // Обработчики событий для переключателей слоев
                 document.querySelectorAll('input[name="baselayer"]').forEach(function(radio) {
@@ -760,9 +815,9 @@
                     }
                 });
 
-            } catch (e) {
-                errorMessage.innerHTML = 'Ошибка инициализации карты: ' + e.message;
-                console.error('Ошибка инициализации карты:', e);
+            } catch (error) {
+                console.error('Ошибка при инициализации карты:', error);
+                errorMessage.innerHTML = 'Ошибка инициализации карты: ' + error.message;
                 loader.style.display = 'none';
             }
         });
